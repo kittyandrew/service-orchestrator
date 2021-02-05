@@ -1,16 +1,16 @@
-// Third Party
+use crate::auth::{Auth, ServiceUrl};
 use rocket_contrib::json::JsonValue;
-use crate::auth::Auth;
 
 // Root
 
 #[get("/")]
-pub fn get_index(auth: Auth) -> JsonValue {
+pub fn get_index(auth: Auth, url: ServiceUrl) -> JsonValue {
     json!({
         "msg_code": "info_root_msg",
         "message": "Hello from HumanBios v0.0.1!",
         "test_token": auth.token,
         "test_service": auth.service,
+        "test_url": url,
     })
 }
 
