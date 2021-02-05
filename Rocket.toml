@@ -1,0 +1,14 @@
+[global]
+# default (dev) port is 8000
+address = "0.0.0.0"
+# template_dir = "templates/"
+
+# [global.databases]
+# box = { url = "postgres://xxxxx:yyyyy@localhost:5432/box" }
+
+# Release config
+[release]
+port = 8080
+
+# [release.databases]
+# box = { url = "postgres://xxxxx:yyyyy@orchestrator-db:5432/box" }
