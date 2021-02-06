@@ -16,6 +16,7 @@ fn rocket() -> rocket::Rocket {
         .mount("/", routes![misc::get_index])
         .mount("/subscription", routes![
             subscribe::subscriptions_new,
+            subscribe::subscriptions_forward,
         ])
         // All-catchers
         .register(catchers![
@@ -28,5 +29,5 @@ fn rocket() -> rocket::Rocket {
         // .manage(utils::map_generate_users())
         // Config
         .manage(storage::init())
-        .manage(env::var("TOKEN").expect("You must set $TOKEN env var!"))
+        .manage(auth::OToken(env::var("TOKEN").expect("You must set $TOKEN env var!")))
 }

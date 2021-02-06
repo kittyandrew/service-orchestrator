@@ -74,7 +74,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for ServiceUrl {
 
 
 #[derive(Debug, Serialize)]
-pub struct TargetService(String);
+pub struct TargetService(pub String);
 
 
 #[derive(Debug)]
@@ -96,5 +96,5 @@ impl<'a, 'r> FromRequest<'a, 'r> for TargetService {
 }
 
 
-pub type OToken = String;
+pub struct OToken(pub String);
 
