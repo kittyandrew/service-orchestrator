@@ -1,17 +1,14 @@
-use crate::auth::{Auth, ServiceUrl, TargetService};
 use rocket_contrib::json::JsonValue;
+use crate::auth::Auth;
 
 // Root
 
+// #TODO: authorization verification
 #[get("/")]
-pub fn get_index(auth: Auth, url: ServiceUrl, target: TargetService) -> JsonValue {
+pub fn get_index(_auth: Auth) -> JsonValue {
     json!({
         "msg_code": "info_root_msg",
-        "message": "Hello from Orchestrator v0.0.1!",
-        "test_token": auth.token,
-        "test_service": auth.service,
-        "test_url": url,
-        "test_target": target,
+        "message": "Hello from Orchestrator v0.0.2!",
     })
 }
 
