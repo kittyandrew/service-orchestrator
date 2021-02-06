@@ -8,7 +8,7 @@
 // Own code
 mod misc;
 mod auth;
-mod preparation;
+mod storage;
 
 #[launch]
 fn rocket() -> rocket::Rocket {
@@ -25,5 +25,5 @@ fn rocket() -> rocket::Rocket {
         // "local" vars
         // .manage(utils::map_generate_users())
         // Config
-        // .manage(utils::get_context())
+        .manage(storage::AuthStorage::new())
 }
