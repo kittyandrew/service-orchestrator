@@ -1,6 +1,6 @@
 [package]
 name = "service-orchestrator"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["kittyandrew <kitty@maudrew.dev>"]
 edition = "2018"
 
@@ -12,9 +12,9 @@ rocket_contrib = { git = "https://github.com/SergioBenitez/Rocket", features = [
 serde = { version = "1.0.117", features = ["derive"] }
 serde_json = "1.0"
 url = "2.2.0"
+rand = { version = "0.8.3" }
 # blake3 = "0.3.7"
 # chrono = { version = "0.4", features = ["serde"] }
-# rand = "0.7.3"
 # either = "1.6.1"
 # tokio = "0.3.5"
 # dynfmt = { version = "0.1.4", features = ["curly"] }

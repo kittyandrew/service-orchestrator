@@ -9,12 +9,15 @@
 mod misc;
 mod auth;
 mod storage;
+mod subscribe;
 
 #[launch]
 fn rocket() -> rocket::Rocket {
     rocket::ignite()
-        // Home page
         .mount("/", routes![misc::get_index])
+        .mount("/subscription", routes![
+            subscribe::subscriptions_new,
+        ])
         // All-catchers
         .register(catchers![
             misc::not_found,
