@@ -18,12 +18,12 @@ fn rocket() -> rocket::Rocket {
         // All-catchers
         .register(catchers![
             misc::not_found,
-            misc::bad_request,
+            misc::unauth_handler,
         ])
         // Databases
         // .attach(db::Box::fairing())
         // "local" vars
         // .manage(utils::map_generate_users())
         // Config
-        .manage(storage::AuthStorage::new())
+        .manage(storage::init())
 }

@@ -616,17 +616,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "494b4d60369511e7dea41cf646832512a94e542f68bb9c49e54518e0f468eb47"
 
 [[package]]
-name = "humanbios-orchestrator"
-version = "0.0.1"
-dependencies = [
- "rocket",
- "rocket_contrib",
- "serde",
- "serde_json",
- "url",
-]
-
-[[package]]
 name = "humansize"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1590,6 +1579,17 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "service-orchestrator"
+version = "0.0.1"
+dependencies = [
+ "rocket",
+ "rocket_contrib",
+ "serde",
+ "serde_json",
+ "url",
 ]
 
 [[package]]

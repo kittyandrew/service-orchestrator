@@ -1,16 +1,17 @@
-use crate::auth::{Auth, ServiceUrl};
+use crate::auth::{Auth, ServiceUrl, TargetService};
 use rocket_contrib::json::JsonValue;
 
 // Root
 
 #[get("/")]
-pub fn get_index(auth: Auth, url: ServiceUrl) -> JsonValue {
+pub fn get_index(auth: Auth, url: ServiceUrl, target: TargetService) -> JsonValue {
     json!({
         "msg_code": "info_root_msg",
         "message": "Hello from Orchestrator v0.0.1!",
         "test_token": auth.token,
         "test_service": auth.service,
         "test_url": url,
+        "test_target": target,
     })
 }
 
@@ -25,11 +26,11 @@ pub fn not_found() -> JsonValue {
 }
 
 // #TODO: explain invalid token/invalid data
-#[catch(400)]
-pub fn bad_request() -> JsonValue {
+#[catch(401)]
+pub fn unauth_handler() -> JsonValue {
     json!({
-        "msg_code": "err_bad_request",
-        "message": "Server couldn't parse the data!",
+        "msg_code": "err_unauthorized",
+        "message": "Your are missing required headers or they are not correct!",
     })
 }
 

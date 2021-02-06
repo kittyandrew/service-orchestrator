@@ -28,13 +28,13 @@ impl<'a, 'r> FromRequest<'a, 'r> for Auth {
         match req.headers().get_one("X-TOKEN") {
             Some(v) => token = v,
             // Early return on error
-            None => return Outcome::Failure((Status::BadRequest, AuthError::MissingToken)),
+            None => return Outcome::Failure((Status::Unauthorized, AuthError::MissingToken)),
         }
 
         match req.headers().get_one("X-SERVICE") {
             Some(v) => service = v,
             // Early return on error
-            None => return Outcome::Failure((Status::BadRequest, AuthError::MissingService)),
+            None => return Outcome::Failure((Status::Unauthorized, AuthError::MissingService)),
         }
 
         // Returning parsed auth
@@ -65,10 +65,32 @@ impl<'a, 'r> FromRequest<'a, 'r> for ServiceUrl {
         match req.headers().get_one("X-URL") {
             Some(v) => match Url::parse(v) {
                 Ok(url) => Outcome::Success(ServiceUrl(url.to_string())),
-                Err(e)  => Outcome::Failure((Status::BadRequest, UrlError::Parse(e)))
+                Err(e)  => Outcome::Failure((Status::Unauthorized, UrlError::Parse(e)))
             },
-            // Early return on error
-            None => Outcome::Failure((Status::BadRequest, UrlError::MissingUrl)),
+            None => Outcome::Failure((Status::Unauthorized, UrlError::MissingUrl)),
+        }
+    }
+}
+
+
+#[derive(Debug, Serialize)]
+pub struct TargetService(String);
+
+
+#[derive(Debug)]
+pub enum TargetServiceError {
+    MissingTargetService,
+}
+
+
+#[rocket::async_trait]
+impl<'a, 'r> FromRequest<'a, 'r> for TargetService {
+    type Error = TargetServiceError;
+
+    async fn from_request(req: &'a Request<'r>) -> Outcome<Self, Self::Error> {
+        match req.headers().get_one("X-TARGET-SERVICE") {
+            Some(v) => Outcome::Success(TargetService(v.to_string())),
+            None => Outcome::Failure((Status::Unauthorized, TargetServiceError::MissingTargetService)),
         }
     }
 }
