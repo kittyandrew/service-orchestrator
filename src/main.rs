@@ -1,15 +1,14 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 #[macro_use] extern crate rocket;
 #[macro_use] extern crate rocket_contrib;
-// Third Party
-// use rocket_contrib::templates::Template;
-// use rocket_contrib::serve::StaticFiles;
+use std::env;
 
 // Own code
 mod misc;
 mod auth;
 mod storage;
 mod subscribe;
+
 
 #[launch]
 fn rocket() -> rocket::Rocket {
@@ -29,4 +28,5 @@ fn rocket() -> rocket::Rocket {
         // .manage(utils::map_generate_users())
         // Config
         .manage(storage::init())
+        .manage(env::var("TOKEN").expect("You must set $TOKEN env var!"))
 }
