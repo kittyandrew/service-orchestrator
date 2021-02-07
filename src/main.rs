@@ -6,6 +6,7 @@ use std::env;
 // Own code
 mod misc;
 mod auth;
+mod body;
 mod storage;
 mod subscribe;
 

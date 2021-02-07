@@ -2,6 +2,7 @@ use crate::auth::{Auth, ServiceUrl, TargetService, OToken};
 use crate::storage::{AuthStorage, StoredAuth};
 use rand::distributions::Alphanumeric;
 use rocket_contrib::json::JsonValue;
+use crate::body::ReqData;
 use rocket::State;
 use std::iter;
 use rand::Rng;
@@ -60,13 +61,8 @@ pub fn verify(storage: &AuthStorage, auth: &Auth) -> Option<JsonValue> {
 }
 
 
-#[post("/forward", format = "application/json")]
-pub fn subscriptions_forward(
-    map: State<AuthStorage>,
-    /*otoken: State<OToken>,*/
-    auth: Auth,
-    target: TargetService
-) -> JsonValue {
+#[post("/forward", format = "application/json", data = "<data>")]
+pub fn subscriptions_forward(data: ReqData, map: State<AuthStorage>, /*otoken: State<OToken>, */auth: Auth, target: TargetService) -> JsonValue {
     /* TODO: do we really want to do 2 factor auth (two tokens)?
     if otoken.0 != auth.token {
         return Err(json!({
@@ -84,9 +80,13 @@ pub fn subscriptions_forward(
 
     // Get url for the requested service and forward request
     match map.lock().unwrap().get(&target.0) {
-        Some(_) =>json!({
+        Some(creds) =>json!({
             "test": "Success!",
-            // TODO: think about resending headers
+            "data": &data.0,
+            "real_token": format!(
+                "Will be appended to headers of the request to do verification. TOKEN: {}",
+                creds.token
+            ),
         }),
         None => json!({
             "msg_code": "err_service_invalid",
