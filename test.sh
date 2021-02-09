@@ -7,6 +7,10 @@ token=$(echo $result | jq -r .new_token)
 echo -e
 echo -e "Token: $token\n"
 
-out=$(curl -X POST -d '"cool_string"' -H "Content-Type: application/json" -H "X-TOKEN: $token" -H "X-SERVICE: cool_thing" -H "X-TARGET-SERVICE: cool_thing" http://0.0.0.0:8000/subscription/forward)
+out=$(curl -X POST -d '"cool_long"' -H "Content-Type: application/json" -H "X-TOKEN: $token" -H "X-SERVICE: cool_thing" -H "X-TARGET-SERVICE: cool_thing" http://0.0.0.0:8000/subscription/forward)
+echo $out
+echo -e
+
+out=$(curl -X POST -d '"cool"' -H "Content-Type: application/json" -H "X-TOKEN: $token" -H "X-SERVICE: cool_thing" -H "X-TARGET-SERVICE: cool_thing" http://0.0.0.0:8000/subscription/forward)
 echo $out
 echo -e
