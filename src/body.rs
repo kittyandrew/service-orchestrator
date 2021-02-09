@@ -1,15 +1,15 @@
-use jsonschema::{Draft, JSONSchema, CompilationError};
 use rocket::data::{Outcome, FromData, ByteUnit};
 use rocket::http::{Status, ContentType};
-use serde_json::{json, Value, from_str};
 use serde::{Deserialize, Serialize};
+use jsonschema::{Draft, JSONSchema};
+use serde_json::{Value, from_str};
 use rocket::{Request, Data};
 use std::fs;
 
 
 // Always use a limit to prevent DoS attacks.
 // TODO: Document and (maybe) allow to be tweakable
-const LIMIT: ByteUnit = ByteUnit::Byte(256);
+const LIMIT: ByteUnit = ByteUnit::Byte(1024);
 
 
 #[derive(Serialize, Deserialize)]
