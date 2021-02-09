@@ -1,5 +1,6 @@
 use crate::auth::{Auth, ServiceUrl, TargetService, OToken};
 use crate::storage::{AuthStorage, StoredAuth};
+use crate::helpers::{verify, propagate};
 use rand::distributions::Alphanumeric;
 use rocket_contrib::json::JsonValue;
 use jsonschema::JSONSchema;
@@ -45,35 +46,8 @@ pub fn subscriptions_new(map: State<AuthStorage>, otoken: State<OToken>, auth: A
 }
 
 
-pub fn verify(storage: &AuthStorage, auth: &Auth) -> Option<JsonValue> {
-    match storage.lock().unwrap().get(&auth.service) {
-        Some(creds) => match creds {
-            creds if creds.token == auth.token => None,
-            _ => Some(json!({
-                "msg_code": "err_token_invalid",
-                "message": "Service token is invalid!",
-            })),
-        },
-        None => Some(json!({
-            "msg_code": "err_token_invalid",
-            "message": "Service token is invalid!",
-        })),
-    }
-}
-
-
 #[post("/forward", format = "application/json", data = "<data>")]
 pub fn subscriptions_forward(data: ReqData, schema: State<JSONSchema>, map: State<AuthStorage>, auth: Auth, target: TargetService) -> JsonValue {
-    /* TODO: do we really want to do 2 factor auth (two tokens)?
-    if otoken.0 != auth.token {
-        return Err(json!({
-            "msg_code": "err_token_invalid",
-            "message": "Orchestrator token is invalid!",
-            "token": &auth.token,
-        }))
-    }
-    */
-
     // Check if service matches registered token
     if let Some(err) = verify(&map, &auth) {
         return err
@@ -83,13 +57,12 @@ pub fn subscriptions_forward(data: ReqData, schema: State<JSONSchema>, map: Stat
     match map.lock().unwrap().get(&target.0) {
         Some(creds) => {
             if schema.is_valid(&data.0) {
+                // Propagating request here
+                propagate(&data.0, &creds.token);
+                // Writing 
                 return json!({
-                    "test": "Success!",
-                    "data": &data.0,
-                    "real_token": format!(
-                        "Will be appended to headers of the request to do verification. TOKEN: {}",
-                        creds.token
-                    ),
+                    "msg_code": "info_propagation_ok",
+                    "message": "Your request was successfully propagated to the desired service!",
                 })
             }
             // If we got here, we don't need speed anymore -> just return useful error.

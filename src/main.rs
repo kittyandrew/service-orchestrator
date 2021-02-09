@@ -8,6 +8,7 @@ mod misc;
 mod auth;
 mod body;
 mod storage;
+mod helpers;
 mod subscribe;
 
 #[launch]
@@ -24,10 +25,6 @@ fn rocket() -> rocket::Rocket {
             misc::unauth_handler,
             misc::serverside_handler,
         ])
-        // Databases
-        // .attach(db::Box::fairing())
-        // "local" vars
-        // .manage(utils::map_generate_users())
         // Config
         .manage(storage::init())
         .manage(auth::OToken(env::var("TOKEN").expect("You must set $TOKEN env var!")))

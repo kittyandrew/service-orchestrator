@@ -9,11 +9,30 @@ pub struct Auth {
     pub service: String,
 }
 
+#[derive(Debug, Serialize)]
+pub struct ServiceUrl(pub String);
+
+pub struct OToken(pub String);
+
+#[derive(Debug, Serialize)]
+pub struct TargetService(pub String);
+
 
 #[derive(Debug)]
 pub enum AuthError {
     MissingToken,
     MissingService,
+}
+
+#[derive(Debug)]
+pub enum UrlError {
+    MissingUrl,
+    Parse(ParseError),
+}
+
+#[derive(Debug)]
+pub enum TargetServiceError {
+    MissingTargetService,
 }
 
 
@@ -45,18 +64,6 @@ impl<'a, 'r> FromRequest<'a, 'r> for Auth {
     }
 }
 
-
-#[derive(Debug, Serialize)]
-pub struct ServiceUrl(String);
-
-
-#[derive(Debug)]
-pub enum UrlError {
-    MissingUrl,
-    Parse(ParseError),
-}
-
-
 #[rocket::async_trait]
 impl<'a, 'r> FromRequest<'a, 'r> for ServiceUrl {
     type Error = UrlError;
@@ -72,17 +79,6 @@ impl<'a, 'r> FromRequest<'a, 'r> for ServiceUrl {
     }
 }
 
-
-#[derive(Debug, Serialize)]
-pub struct TargetService(pub String);
-
-
-#[derive(Debug)]
-pub enum TargetServiceError {
-    MissingTargetService,
-}
-
-
 #[rocket::async_trait]
 impl<'a, 'r> FromRequest<'a, 'r> for TargetService {
     type Error = TargetServiceError;
@@ -94,7 +90,4 @@ impl<'a, 'r> FromRequest<'a, 'r> for TargetService {
         }
     }
 }
-
-
-pub struct OToken(pub String);
 
