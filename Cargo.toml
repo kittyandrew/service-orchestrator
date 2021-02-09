@@ -1,6 +1,6 @@
 [package]
 name = "service-orchestrator"
-version = "0.0.5"
+version = "0.0.6"
 authors = ["kittyandrew <kitty@maudrew.dev>"]
 edition = "2018"
 
@@ -13,7 +13,7 @@ serde = { version = "1.0.117", features = ["derive"] }
 serde_json = "1.0"
 url = "2.2.0"
 rand = { version = "0.8.3" }
-either = { version = "1.6.1", features = ["serde"]}
+jsonschema = "0.6.0"
 # blake3 = "0.3.7"
 # chrono = { version = "0.4", features = ["serde"] }
 # tokio = "0.3.5"

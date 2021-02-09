@@ -2,6 +2,7 @@ use crate::auth::{Auth, ServiceUrl, TargetService, OToken};
 use crate::storage::{AuthStorage, StoredAuth};
 use rand::distributions::Alphanumeric;
 use rocket_contrib::json::JsonValue;
+use jsonschema::JSONSchema;
 use crate::body::ReqData;
 use rocket::State;
 use std::iter;
@@ -62,7 +63,7 @@ pub fn verify(storage: &AuthStorage, auth: &Auth) -> Option<JsonValue> {
 
 
 #[post("/forward", format = "application/json", data = "<data>")]
-pub fn subscriptions_forward(data: ReqData, map: State<AuthStorage>, /*otoken: State<OToken>, */auth: Auth, target: TargetService) -> JsonValue {
+pub fn subscriptions_forward(data: ReqData, schema: State<JSONSchema>, map: State<AuthStorage>, auth: Auth, target: TargetService) -> JsonValue {
     /* TODO: do we really want to do 2 factor auth (two tokens)?
     if otoken.0 != auth.token {
         return Err(json!({
@@ -80,14 +81,24 @@ pub fn subscriptions_forward(data: ReqData, map: State<AuthStorage>, /*otoken: S
 
     // Get url for the requested service and forward request
     match map.lock().unwrap().get(&target.0) {
-        Some(creds) =>json!({
-            "test": "Success!",
-            "data": &data.0,
-            "real_token": format!(
-                "Will be appended to headers of the request to do verification. TOKEN: {}",
-                creds.token
-            ),
-        }),
+        Some(creds) => {
+            if schema.is_valid(&data.0) {
+                return json!({
+                    "test": "Success!",
+                    "data": &data.0,
+                    "real_token": format!(
+                        "Will be appended to headers of the request to do verification. TOKEN: {}",
+                        creds.token
+                    ),
+                })
+            }
+            // If we got here, we don't need speed anymore -> just return useful error.
+            let mut errors = schema.validate(&data.0).unwrap_err();
+            return json!({
+                "msg_code": "err_schema_invalid",
+                "message": format!("Validation error: {}", errors.next().unwrap()),
+            })
+        },
         None => json!({
             "msg_code": "err_service_invalid",
             "message": "Requested service name is invalid!",

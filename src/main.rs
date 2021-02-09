@@ -1,6 +1,7 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 #[macro_use] extern crate rocket;
 #[macro_use] extern crate rocket_contrib;
+use jsonschema::JSONSchema;
 use std::env;
 
 // Own code
@@ -9,7 +10,6 @@ mod auth;
 mod body;
 mod storage;
 mod subscribe;
-
 
 #[launch]
 fn rocket() -> rocket::Rocket {
@@ -23,6 +23,7 @@ fn rocket() -> rocket::Rocket {
         .register(catchers![
             misc::not_found,
             misc::unauth_handler,
+            misc::serverside_handler,
         ])
         // Databases
         // .attach(db::Box::fairing())
@@ -31,4 +32,5 @@ fn rocket() -> rocket::Rocket {
         // Config
         .manage(storage::init())
         .manage(auth::OToken(env::var("TOKEN").expect("You must set $TOKEN env var!")))
+        .manage(body::read_schemas("./test/schema.json"))
 }
