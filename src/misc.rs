@@ -16,7 +16,7 @@ pub fn get_index(stoken: SToken, otoken: State<OToken>) -> JsonValue {
 
     json!({
         "msg_code": "info_root_msg",
-        "message": "Hello from Orchestrator v0.0.8!",
+        "message": "Hello from Orchestrator v0.0.9!",
     })
 }
 
