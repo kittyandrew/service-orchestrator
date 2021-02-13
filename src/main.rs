@@ -30,7 +30,7 @@ fn rocket() -> rocket::Rocket {
         // Config
         .manage(storage::init())
         .manage(auth::OToken(env::var("TOKEN").expect("You must set $TOKEN env var!")))
-        .manage(body::read_schemas("./test/schema.json"))
+        .manage(helpers::read_schemas("./test/schema.json"))
         .manage(Runtime::new().unwrap())
         .manage(Client::new())
 }
