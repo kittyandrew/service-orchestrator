@@ -8,7 +8,7 @@ use crate::auth::Auth;
 pub fn get_index(_auth: Auth) -> JsonValue {
     json!({
         "msg_code": "info_root_msg",
-        "message": "Hello from Orchestrator v0.0.7!",
+        "message": "Hello from Orchestrator v0.0.8!",
     })
 }
 
