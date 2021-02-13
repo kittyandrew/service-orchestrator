@@ -1,16 +1,16 @@
 use rocket_contrib::json::JsonValue;
-use crate::auth::{Auth, OToken};
+use crate::auth::{SToken, OToken};
 use rocket::State;
 
 
 // ROOT
 #[get("/")]
-pub fn get_index(auth: Auth, otoken: State<OToken>) -> JsonValue {
-    if otoken.0 != auth.token {
+pub fn get_index(stoken: SToken, otoken: State<OToken>) -> JsonValue {
+    if otoken.0 != stoken.0 {
         return json!({
             "msg_code": "err_token_invalid",
             "message": "Orchestrator token is invalid!",
-            "token": &auth.token,
+            "token": &stoken.0,
         })
     }
 

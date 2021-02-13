@@ -1,20 +1,20 @@
+use crate::auth::{SName, SToken, SUrl};
 use std::collections::HashMap;
-use crate::auth::ServiceUrl;
 use std::sync::Mutex;
 
 
 #[derive(Clone, Debug)]
-pub struct StoredAuth {
-    pub url: ServiceUrl,
-    pub service: String,
-    pub token: String,
+pub struct StoredService {
+    pub url: SUrl,
+    pub name: SName,
+    pub token: SToken,
 }
 
 
-pub type AuthStorage = Mutex<HashMap<String, StoredAuth>>;
+pub type ServiceStorage = Mutex<HashMap<String, StoredService>>;
 
 
-pub fn init() -> AuthStorage {
-    Mutex::new(HashMap::<String, StoredAuth>::new())
+pub fn init() -> ServiceStorage {
+    Mutex::new(HashMap::<String, StoredService>::new())
 }
 

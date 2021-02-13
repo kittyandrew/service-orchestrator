@@ -1,5 +1,5 @@
-use crate::auth::{Auth, ServiceUrl, TargetService, OToken};
-use crate::storage::{AuthStorage, StoredAuth};
+use crate::auth::{SName, SToken, SUrl, STarget, OToken};
+use crate::storage::{ServiceStorage, StoredService};
 use crate::helpers::{verify, propagate};
 use rand::distributions::Alphanumeric;
 use rocket_contrib::json::JsonValue;
@@ -13,12 +13,18 @@ use rand::Rng;
 
 
 #[get("/new")]
-pub fn subscriptions_new(map: State<AuthStorage>, otoken: State<OToken>, auth: Auth, url: ServiceUrl) -> JsonValue {
-    if otoken.0 != auth.token {
+pub fn subscriptions_new(
+    map: State<ServiceStorage>,
+    otoken: State<OToken>,
+    sname: SName,
+    stoken: SToken,
+    surl: SUrl,
+) -> JsonValue {
+    if otoken.0 != stoken.0 {
         return json!({
             "msg_code": "err_token_invalid",
             "message": "Orchestrator token is invalid!",
-            "token": &auth.token,
+            "token": &stoken,
         })
     }
 
@@ -32,11 +38,11 @@ pub fn subscriptions_new(map: State<AuthStorage>, otoken: State<OToken>, auth: A
 
     // Rewrites if already contained any information
     storage.insert(
-        auth.service.clone(),
-        StoredAuth {
-            service: auth.service,
-            url: url,
-            token: new_token.clone(),
+        sname.0.clone(),
+        StoredService {
+            name: sname,
+            url: surl,
+            token: SToken(new_token.clone()),
         }
     );
 
@@ -50,16 +56,17 @@ pub fn subscriptions_new(map: State<AuthStorage>, otoken: State<OToken>, auth: A
 
 #[post("/forward", format = "application/json", data = "<data>")]
 pub fn subscriptions_forward(
-    data: ReqData,
-    schema: State<JSONSchema>,
-    map: State<AuthStorage>,
-    auth: Auth,
-    target: TargetService,
     runtime: State<Runtime>,
     client: State<Client>,
+    map: State<ServiceStorage>,
+    schema: State<JSONSchema>,
+    data: ReqData,
+    sname: SName,
+    stoken: SToken,
+    target: STarget,
 ) -> JsonValue {
     // Check if service matches registered token
-    if let Some(err) = verify(&map, &auth) {
+    if let Some(err) = verify(&map, &sname, &stoken) {
         return err
     }
 

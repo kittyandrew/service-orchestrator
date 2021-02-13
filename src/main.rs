@@ -34,3 +34,4 @@ fn rocket() -> rocket::Rocket {
         .manage(Runtime::new().unwrap())
         .manage(Client::new())
 }
+

@@ -51,7 +51,7 @@ pub fn read_schemas<'a>(path: &str) -> JSONSchema<'a> {
     // TODO: read all schemas from the folder
     let file = fs::read_to_string(path).expect("Unable to read file");
     let schema: Value = from_str(&file).expect("Unable to parse schema from string.");
-    // @RUSTWTF: https://github.com/Stranger6667/jsonschema-rs/issues/145
+    // @GITHUB_ISSUE: https://github.com/Stranger6667/jsonschema-rs/issues/145
     let schema_boxed: &'static Value = Box::leak(Box::new(schema));
     JSONSchema::options()
         .with_draft(Draft::Draft7)

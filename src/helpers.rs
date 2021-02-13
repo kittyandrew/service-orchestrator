@@ -1,15 +1,15 @@
-use crate::storage::{AuthStorage, StoredAuth};
+use crate::storage::{ServiceStorage, StoredService};
 use rocket_contrib::json::JsonValue;
+use crate::auth::{SName, SToken};
 use tokio::runtime::Runtime;
-use crate::auth::Auth;
 use serde_json::Value;
 use reqwest::Client;
 
 
-pub fn verify(storage: &AuthStorage, auth: &Auth) -> Option<JsonValue> {
-    match storage.lock().unwrap().get(&auth.service) {
+pub fn verify(storage: &ServiceStorage, name: &SName, token: &SToken) -> Option<JsonValue> {
+    match storage.lock().unwrap().get(&name.0) {
         Some(creds) => match creds {
-            creds if creds.token == auth.token => None,
+            creds if creds.token.0 == token.0 => None,
             _ => Some(json!({
                 "msg_code": "err_token_invalid",
                 "message": "Service token is invalid!",
@@ -23,16 +23,15 @@ pub fn verify(storage: &AuthStorage, auth: &Auth) -> Option<JsonValue> {
 }
 
 
-pub fn propagate(rt: &Runtime, c: Client, body: Value, auth: &StoredAuth) {
-    let lauth: StoredAuth = auth.clone();
+pub fn propagate(rt: &Runtime, c: Client, body: Value, auth: &StoredService) {
+    let lauth: StoredService = auth.clone();
     rt.spawn(async move {
         c.post(&lauth.url.0)
             .json(&body)
-            .header("X-TOKEN", &lauth.token)
+            .header("X-TOKEN", &lauth.token.0)
             .send()
             .await
             .expect("[propagate] Fatal error sending request to target ...");
-        // println!("Now running on a worker thread");
     });
 }
 
