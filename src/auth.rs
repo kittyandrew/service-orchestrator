@@ -9,9 +9,10 @@ pub struct Auth {
     pub service: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct ServiceUrl(pub String);
 
+#[derive(Debug, Serialize)]
 pub struct OToken(pub String);
 
 #[derive(Debug, Serialize)]

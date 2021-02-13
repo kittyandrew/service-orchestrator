@@ -3,8 +3,10 @@ use crate::storage::{AuthStorage, StoredAuth};
 use crate::helpers::{verify, propagate};
 use rand::distributions::Alphanumeric;
 use rocket_contrib::json::JsonValue;
+use tokio::runtime::Runtime;
 use jsonschema::JSONSchema;
 use crate::body::ReqData;
+use reqwest::Client;
 use rocket::State;
 use std::iter;
 use rand::Rng;
@@ -47,7 +49,15 @@ pub fn subscriptions_new(map: State<AuthStorage>, otoken: State<OToken>, auth: A
 
 
 #[post("/forward", format = "application/json", data = "<data>")]
-pub fn subscriptions_forward(data: ReqData, schema: State<JSONSchema>, map: State<AuthStorage>, auth: Auth, target: TargetService) -> JsonValue {
+pub fn subscriptions_forward(
+    data: ReqData,
+    schema: State<JSONSchema>,
+    map: State<AuthStorage>,
+    auth: Auth,
+    target: TargetService,
+    runtime: State<Runtime>,
+    client: State<Client>,
+) -> JsonValue {
     // Check if service matches registered token
     if let Some(err) = verify(&map, &auth) {
         return err
@@ -58,7 +68,7 @@ pub fn subscriptions_forward(data: ReqData, schema: State<JSONSchema>, map: Stat
         Some(creds) => {
             if schema.is_valid(&data.0) {
                 // Propagating request here
-                propagate(&data.0, &creds.token);
+                propagate(&runtime, client.inner().clone(), data.0.clone(), &creds);
                 // Writing 
                 return json!({
                     "msg_code": "info_propagation_ok",

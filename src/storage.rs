@@ -3,6 +3,7 @@ use crate::auth::ServiceUrl;
 use std::sync::Mutex;
 
 
+#[derive(Clone, Debug)]
 pub struct StoredAuth {
     pub url: ServiceUrl,
     pub service: String,

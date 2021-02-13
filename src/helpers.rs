@@ -1,7 +1,9 @@
+use crate::storage::{AuthStorage, StoredAuth};
 use rocket_contrib::json::JsonValue;
-use crate::storage::AuthStorage;
+use tokio::runtime::Runtime;
 use crate::auth::Auth;
 use serde_json::Value;
+use reqwest::Client;
 
 
 pub fn verify(storage: &AuthStorage, auth: &Auth) -> Option<JsonValue> {
@@ -21,8 +23,16 @@ pub fn verify(storage: &AuthStorage, auth: &Auth) -> Option<JsonValue> {
 }
 
 
-pub fn propagate(body: &Value, token: &str) {
-    // TODO: finish
-    println!("BODY: {}\nTOKEN: {}", body, token);
+pub fn propagate(rt: &Runtime, c: Client, body: Value, auth: &StoredAuth) {
+    let lauth: StoredAuth = auth.clone();
+    rt.spawn(async move {
+        c.post(&lauth.url.0)
+            .json(&body)
+            .header("X-TOKEN", &lauth.token)
+            .send()
+            .await
+            .expect("[propagate] Fatal error sending request to target ...");
+        println!("Now running on a worker thread");
+    });
 }
 
