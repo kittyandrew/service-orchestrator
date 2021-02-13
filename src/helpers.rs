@@ -32,7 +32,7 @@ pub fn propagate(rt: &Runtime, c: Client, body: Value, auth: &StoredAuth) {
             .send()
             .await
             .expect("[propagate] Fatal error sending request to target ...");
-        println!("Now running on a worker thread");
+        // println!("Now running on a worker thread");
     });
 }
 

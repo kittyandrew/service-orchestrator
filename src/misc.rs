@@ -1,11 +1,19 @@
 use rocket_contrib::json::JsonValue;
-use crate::auth::Auth;
+use crate::auth::{Auth, OToken};
+use rocket::State;
 
-// Root
 
-// #TODO: authorization verification
+// ROOT
 #[get("/")]
-pub fn get_index(_auth: Auth) -> JsonValue {
+pub fn get_index(auth: Auth, otoken: State<OToken>) -> JsonValue {
+    if otoken.0 != auth.token {
+        return json!({
+            "msg_code": "err_token_invalid",
+            "message": "Orchestrator token is invalid!",
+            "token": &auth.token,
+        })
+    }
+
     json!({
         "msg_code": "info_root_msg",
         "message": "Hello from Orchestrator v0.0.8!",
@@ -22,6 +30,7 @@ pub fn not_found() -> JsonValue {
     })
 }
 
+
 // #TODO: explain invalid token/invalid data
 #[catch(401)]
 pub fn unauth_handler() -> JsonValue {
@@ -30,6 +39,7 @@ pub fn unauth_handler() -> JsonValue {
         "message": "Your are missing required headers or they are not correct!",
     })
 }
+
 
 // #TODO: return an actual error messages ROCKET. HOW. EXPLAIN.
 #[catch(500)]

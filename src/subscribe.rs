@@ -39,7 +39,7 @@ pub fn subscriptions_new(map: State<AuthStorage>, otoken: State<OToken>, auth: A
             token: new_token.clone(),
         }
     );
-    
+
     json!({
         "msg_code": "info_subscription_ok",
         "message": "Successfully subscribed to the orchestrator!",

@@ -17,3 +17,4 @@ pub type AuthStorage = Mutex<HashMap<String, StoredAuth>>;
 pub fn init() -> AuthStorage {
     Mutex::new(HashMap::<String, StoredAuth>::new())
 }
+

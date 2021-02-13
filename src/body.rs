@@ -8,8 +8,7 @@ use std::fs;
 
 
 // Always use a limit to prevent DoS attacks.
-// TODO: Document and (maybe) allow to be tweakable
-const LIMIT: ByteUnit = ByteUnit::Byte(1024);
+const LIMIT: ByteUnit = ByteUnit::Byte(4096);
 
 
 #[derive(Serialize, Deserialize)]
