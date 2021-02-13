@@ -13,28 +13,24 @@ pub struct SName(pub String);
 #[derive(Debug, Serialize, Clone)]
 pub struct SUrl(pub String);
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct OToken(pub String);
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct STarget(pub String);
+
+#[derive(Debug, Serialize, Clone)]
+pub struct SchemaName(pub String);
 
 
 #[derive(Debug)]
 pub enum AuthError {
     MissingToken,
     MissingService,
-}
-
-#[derive(Debug)]
-pub enum UrlError {
     MissingUrl,
     Parse(ParseError),
-}
-
-#[derive(Debug)]
-pub enum TargetServiceError {
-    MissingTargetService,
+    MissingTarget,
+    MissingSchemaName,
 }
 
 
@@ -66,15 +62,15 @@ impl<'a, 'r> FromRequest<'a, 'r> for SName {
 
 #[rocket::async_trait]
 impl<'a, 'r> FromRequest<'a, 'r> for SUrl {
-    type Error = UrlError;
+    type Error = AuthError;
 
     async fn from_request(req: &'a Request<'r>) -> Outcome<Self, Self::Error> {
         match req.headers().get_one("X-URL") {
             Some(v) => match Url::parse(v) {
                 Ok(url) => Outcome::Success(SUrl(url.to_string())),
-                Err(e)  => Outcome::Failure((Status::Unauthorized, UrlError::Parse(e)))
+                Err(e)  => Outcome::Failure((Status::Unauthorized, AuthError::Parse(e)))
             },
-            None => Outcome::Failure((Status::Unauthorized, UrlError::MissingUrl)),
+            None => Outcome::Failure((Status::Unauthorized, AuthError::MissingUrl)),
         }
     }
 }
@@ -82,12 +78,25 @@ impl<'a, 'r> FromRequest<'a, 'r> for SUrl {
 
 #[rocket::async_trait]
 impl<'a, 'r> FromRequest<'a, 'r> for STarget {
-    type Error = TargetServiceError;
+    type Error = AuthError;
 
     async fn from_request(req: &'a Request<'r>) -> Outcome<Self, Self::Error> {
         match req.headers().get_one("X-TARGET-SERVICE") {
             Some(v) => Outcome::Success(STarget(v.to_string())),
-            None => Outcome::Failure((Status::Unauthorized, TargetServiceError::MissingTargetService)),
+            None => Outcome::Failure((Status::Unauthorized, AuthError::MissingTarget)),
+        }
+    }
+}
+
+
+#[rocket::async_trait]
+impl<'a, 'r> FromRequest<'a, 'r> for SchemaName {
+    type Error = AuthError;
+
+    async fn from_request(req: &'a Request<'r>) -> Outcome<Self, Self::Error> {
+        match req.headers().get_one("X-EXPECTED-SCHEMA") {
+            Some(v) => Outcome::Success(SchemaName(v.to_string())),
+            None => Outcome::Failure((Status::Unauthorized, AuthError::MissingSchemaName)),
         }
     }
 }

@@ -1,10 +1,9 @@
-use crate::auth::{SName, SToken, SUrl, STarget, OToken};
-use crate::storage::{ServiceStorage, StoredService};
+use crate::auth::{SName, SToken, SUrl, STarget, OToken, SchemaName};
+use crate::storage::{ServiceStorage, StoredService, SchemasStorage};
 use crate::helpers::{verify, propagate};
 use rand::distributions::Alphanumeric;
 use rocket_contrib::json::JsonValue;
 use tokio::runtime::Runtime;
-use jsonschema::JSONSchema;
 use crate::body::ReqData;
 use reqwest::Client;
 use rocket::State;
@@ -14,11 +13,13 @@ use rand::Rng;
 
 #[get("/new")]
 pub fn subscriptions_new(
-    map: State<ServiceStorage>,
+    services: State<ServiceStorage>,
+    schemas: State<SchemasStorage>,
     otoken: State<OToken>,
     sname: SName,
     stoken: SToken,
     surl: SUrl,
+    schema: SchemaName,
 ) -> JsonValue {
     if otoken.0 != stoken.0 {
         return json!({
@@ -27,8 +28,16 @@ pub fn subscriptions_new(
             "token": &stoken,
         })
     }
+    // Check if registrant provided valid schema name
+    if !schemas.lock().unwrap().contains_key(&schema.0) {
+        return json!({
+            "msg_code": "err_schema_name_invalid",
+            "message": "Could not map provided schema name to existing schema!",
+            "name": &schema,
+        })
+    }
 
-    let mut storage = map.lock().unwrap();
+    let mut storage = services.lock().unwrap();
     let mut rng = rand::thread_rng();
     let new_token: String = iter::repeat(())
         .map(|()| rng.sample(Alphanumeric))
@@ -43,6 +52,7 @@ pub fn subscriptions_new(
             name: sname,
             url: surl,
             token: SToken(new_token.clone()),
+            schema: schema,
         }
     );
 
@@ -58,36 +68,45 @@ pub fn subscriptions_new(
 pub fn subscriptions_forward(
     runtime: State<Runtime>,
     client: State<Client>,
-    map: State<ServiceStorage>,
-    schema: State<JSONSchema>,
+    services: State<ServiceStorage>,
+    schemas: State<SchemasStorage>,
     data: ReqData,
     sname: SName,
     stoken: SToken,
     target: STarget,
 ) -> JsonValue {
     // Check if service matches registered token
-    if let Some(err) = verify(&map, &sname, &stoken) {
+    if let Some(err) = verify(&services, &sname, &stoken) {
         return err
     }
-
-    // Get url for the requested service and forward request
-    match map.lock().unwrap().get(&target.0) {
+    // Get info about the requested service and forward request
+    match services.lock().unwrap().get(&target.0) {
         Some(creds) => {
-            if schema.is_valid(&data.0) {
-                // Propagating request here
-                propagate(&runtime, client.inner().clone(), data.0.clone(), &creds);
-                // Writing 
-                return json!({
-                    "msg_code": "info_propagation_ok",
-                    "message": "Your request was successfully propagated to the desired service!",
-                })
+            // Check if sender provided valid schema
+            match schemas.lock().unwrap().get(&creds.schema.0) {
+                Some(schema) => {
+                    if schema.is_valid(&data.0) {
+                        // Propagating request here
+                        propagate(&runtime, client.inner().clone(), data.0.clone(), &creds);
+                        // Writing 
+                        return json!({
+                            "msg_code": "info_propagation_ok",
+                            "message": "Your request was successfully propagated to the desired service!",
+                        })
+                    }
+                    // If we got here, we don't need speed anymore -> just return useful error.
+                    let mut errors = schema.validate(&data.0).unwrap_err();
+                    return json!({
+                        "msg_code": "err_schema_invalid",
+                        "message": format!("Validation error: {}", errors.next().unwrap()),
+                    })
+                },
+                None => return json!({
+                    "msg_code": "err_schema_name_invalid",
+                    "message": "Could not map provided schema name to existing schema!",
+                    "name": &creds.schema,
+                }),
             }
-            // If we got here, we don't need speed anymore -> just return useful error.
-            let mut errors = schema.validate(&data.0).unwrap_err();
-            return json!({
-                "msg_code": "err_schema_invalid",
-                "message": format!("Validation error: {}", errors.next().unwrap()),
-            })
         },
         None => json!({
             "msg_code": "err_service_invalid",

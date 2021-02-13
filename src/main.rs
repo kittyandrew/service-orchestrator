@@ -28,9 +28,9 @@ fn rocket() -> rocket::Rocket {
             misc::serverside_handler,
         ])
         // Config
-        .manage(storage::init())
+        .manage(storage::init_services())
+        .manage(storage::init_schemas("./test"))
         .manage(auth::OToken(env::var("TOKEN").expect("You must set $TOKEN env var!")))
-        .manage(helpers::read_schemas("./test/schema.json"))
         .manage(Runtime::new().unwrap())
         .manage(Client::new())
 }
