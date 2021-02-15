@@ -2,6 +2,8 @@
 #[macro_use] extern crate rocket;
 #[macro_use] extern crate rocket_contrib;
 
+#[cfg(test)] mod tests;
+
 use reqwest::Client;
 use std::env;
 
