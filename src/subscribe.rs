@@ -3,7 +3,6 @@ use crate::storage::{ServiceStorage, StoredService, SchemasStorage};
 use crate::helpers::{verify, propagate};
 use rand::distributions::Alphanumeric;
 use rocket_contrib::json::JsonValue;
-use tokio::runtime::Runtime;
 use crate::body::ReqData;
 use reqwest::Client;
 use rocket::State;
@@ -66,7 +65,6 @@ pub fn subscriptions_new(
 
 #[post("/forward", format = "application/json", data = "<data>")]
 pub fn subscriptions_forward(
-    runtime: State<Runtime>,
     client: State<Client>,
     services: State<ServiceStorage>,
     schemas: State<SchemasStorage>,
@@ -87,7 +85,7 @@ pub fn subscriptions_forward(
                 Some(schema) => {
                     if schema.is_valid(&data.0) {
                         // Propagating request here
-                        propagate(&runtime, client.inner().clone(), data.0.clone(), &creds);
+                        propagate(client.inner().clone(), data.0.clone(), &creds);
                         // Writing 
                         return json!({
                             "msg_code": "info_propagation_ok",

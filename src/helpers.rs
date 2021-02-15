@@ -1,9 +1,9 @@
 use crate::storage::{ServiceStorage, StoredService};
 use rocket_contrib::json::JsonValue;
 use crate::auth::{SName, SToken};
-use tokio::runtime::Runtime;
 use serde_json::Value;
 use reqwest::Client;
+use tokio::spawn;
 
 
 pub fn verify(storage: &ServiceStorage, name: &SName, token: &SToken) -> Option<JsonValue> {
@@ -23,9 +23,9 @@ pub fn verify(storage: &ServiceStorage, name: &SName, token: &SToken) -> Option<
 }
 
 
-pub fn propagate(rt: &Runtime, c: Client, body: Value, auth: &StoredService) {
+pub fn propagate(/*rt: &Runtime,*/ c: Client, body: Value, auth: &StoredService) {
     let lauth: StoredService = auth.clone();
-    rt.spawn(async move {
+    spawn(async move {
         c.post(&lauth.url.0)
             .json(&body)
             .header("X-TOKEN", &lauth.token.0)

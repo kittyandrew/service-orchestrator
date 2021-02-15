@@ -1,7 +1,7 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 #[macro_use] extern crate rocket;
 #[macro_use] extern crate rocket_contrib;
-use tokio::runtime::Runtime;
+
 use reqwest::Client;
 use std::env;
 
@@ -31,7 +31,6 @@ fn rocket() -> rocket::Rocket {
         .manage(storage::init_services())
         .manage(storage::init_schemas("./examples"))
         .manage(auth::OToken(env::var("TOKEN").expect("You must set $TOKEN env var!")))
-        .manage(Runtime::new().unwrap())
         .manage(Client::new())
 }
 
