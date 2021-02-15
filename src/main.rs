@@ -29,7 +29,7 @@ fn rocket() -> rocket::Rocket {
         ])
         // Config
         .manage(storage::init_services())
-        .manage(storage::init_schemas("./test"))
+        .manage(storage::init_schemas("./examples"))
         .manage(auth::OToken(env::var("TOKEN").expect("You must set $TOKEN env var!")))
         .manage(Runtime::new().unwrap())
         .manage(Client::new())
