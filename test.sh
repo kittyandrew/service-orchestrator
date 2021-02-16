@@ -1,4 +1,6 @@
+TOKEN="testtoken" cargo test
 
+: '
 out=$(curl -s -H "Content-Type: application/json" -H "X-TOKEN: secrettoken" http://0.0.0.0:8000)
 echo -e
 if [ -z "$out" ]; then
@@ -15,7 +17,7 @@ echo -e
 echo -e "Expected to fail:"
 echo $out
 
-result=$(curl -s -H "X-EXPECTED-SCHEMA: main" -H "X-SERVICE: cool_thing" -H "X-TOKEN: secrettoken" -H "X-URL: https://google.com" http://0.0.0.0:8000/subscription/new)
+result=$(curl -s -H "X-EXPECTED-SCHEMA: schema" -H "X-SERVICE: cool_thing" -H "X-TOKEN: secrettoken" -H "X-URL: https://google.com" http://0.0.0.0:8000/subscription/new)
 token=$(echo $result | jq -r .new_token)
 echo -e
 echo -e "Registered:"
@@ -31,4 +33,4 @@ echo -e
 echo -e "Success:"
 echo $out
 echo -e
-
+'

@@ -1,5 +1,7 @@
 use rocket::http::{Status, Header, ContentType};
 use rocket::local::asynchronous::Client;
+use rocket_contrib::json::JsonValue;
+use serde_json::from_str;
 
 
 const TOKEN: &str = "testtoken";
@@ -80,4 +82,102 @@ async fn test_bad_auth_on_subscribe() {
         assert_eq!(body, value);
     }
 }
+
+
+#[rocket::async_test]
+async fn test_success_on_subscribe() {
+    let client = Client::tracked(super::rocket()).await.unwrap();
+    let url = "/subscription/new";
+    let token1: String;
+    let token2: String;
+    // Registering client with schema 1
+    {
+        let schema = "schema";
+        let resp = client.get(url)
+            .header(Header::new("X-TOKEN", TOKEN))
+            .header(Header::new("X-SERVICE", "test_service_1"))
+            .header(Header::new("X-URL", "http://example.com/test_service_1"))
+            .header(Header::new("X-EXPECTED-SCHEMA", schema))
+            .dispatch().await;
+        assert_eq!(resp.status(), Status::Ok);
+
+        let json: JsonValue = from_str(&resp.into_string().await.unwrap()).unwrap();
+        assert_eq!(json["msg_code"], String::from("info_subscription_ok"));
+        assert_eq!(json["message"], String::from("Successfully subscribed to the orchestrator!"));
+        // Verify token is something
+        assert!(json["new_token"].is_string());
+        let token = json["new_token"].as_str().unwrap().to_string();
+        assert!(!token.is_empty());
+        // Save to compare later
+        token1 = token;
+    }
+    // Registering client with schema schema 2
+    {
+        let schema = "schema2";
+        let resp = client.get(url)
+            .header(Header::new("X-TOKEN", TOKEN))
+            .header(Header::new("X-SERVICE", "test_service_2"))
+            .header(Header::new("X-URL", "http://example.com/test_service_2"))
+            .header(Header::new("X-EXPECTED-SCHEMA", schema))
+            .dispatch().await;
+        assert_eq!(resp.status(), Status::Ok);
+
+        let json: JsonValue = from_str(&resp.into_string().await.unwrap()).unwrap();
+        assert_eq!(json["msg_code"], String::from("info_subscription_ok"));
+        assert_eq!(json["message"], String::from("Successfully subscribed to the orchestrator!"));
+        // Verify token is something
+        assert!(json["new_token"].is_string());
+        let token = json["new_token"].as_str().unwrap().to_string();
+        assert!(!token.is_empty());
+        // Save to compare later
+        token2 = token;
+    }
+    // Finally verify token is really random
+    {
+        assert!(token1 != token2);
+    }
+}
+
+
+#[rocket::async_test]
+async fn test_bad_token_subscription_forward() {
+    let client = Client::tracked(super::rocket()).await.unwrap();
+    let url = "/subscription/forward";
+    // Missing Token
+    {
+        let resp = client.post(url)
+            .header(ContentType::JSON)
+            .dispatch().await;
+        assert_eq!(resp.status(), Status::Unauthorized);
+    }
+    // Missing Headers
+    {
+        let resp = client.post(url)
+            .header(ContentType::JSON)
+            .header(Header::new("X-TOKEN", TOKEN))
+            .dispatch().await;
+        assert_eq!(resp.status(), Status::Unauthorized);
+    }
+    // Bad token
+    {
+        let resp = client.post(url)
+            .body("\"This is a json string!\"")
+            .header(ContentType::JSON)
+            .header(Header::new("X-TOKEN", "some_random_token"))
+            .header(Header::new("X-SERVICE", "test_service_1"))
+            .header(Header::new("X-TARGET-SERVICE", "test_service_2"))
+            .dispatch().await;
+        assert_eq!(resp.status(), Status::Ok);
+
+        let body = resp.into_string().await.unwrap();
+        let value = json!({
+            "msg_code": "err_token_invalid",
+            "message": "Service token is invalid!",
+        }).to_string();
+        assert_eq!(body, value);
+    }
+}
+
+
+// TODO: good auth / good forward
 
